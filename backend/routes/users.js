@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs'); // encryption for password
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth'); //  auth middleware
 
-// Register a user
+// public - Register a user
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, isAdmin } = req.body;
@@ -28,7 +28,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login a user
+// public - Login a user
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get user profile
+// protected - Get user profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-password'); // Exclude password
@@ -69,8 +69,8 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Get all users
-router.get('/', async (req, res) => {
+// protected - Get all users
+router.get('/', authMiddleware,  async (req, res) => {
   try {
     const users = await User.find().select('-password'); // Exclude password
     res.send(users);
@@ -79,8 +79,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Delete a user
-router.delete('/:userId', async (req, res) => {
+// protected - Delete a user
+router.delete('/:userId', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.userId);
     if (!user) return res.status(404).send('User not found');
