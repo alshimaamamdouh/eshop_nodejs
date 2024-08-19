@@ -18,12 +18,20 @@ require('dotenv').config();
 app.use(bodyParser.json());
 app.use(morgan('tiny')); // Log requests
 
-mongoose.connect(process.env.MONGODB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('Could not connect to MongoDB...', err));
+//   DATABASE CONNECTION
+// mongoose.connect(process.env.MONGODB_URL, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// })
+// .then(() => console.log('Connected to MongoDB'))
+// .catch(err => console.error('Could not connect to MongoDB...', err));
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Could not connect to MongoDB', err);
+  });
 
 // Use routes
 app.use('/api/v1/users', userRoutes);
@@ -33,7 +41,7 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.listen(5000, () => {
+  console.log('Server is running on port 5000');
 });
 

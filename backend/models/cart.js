@@ -5,4 +5,12 @@ const cartSchema = new mongoose.Schema({
   items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CartItem' }]
 }, { timestamps: true });
 
+
+cartSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
+
+cartSchema.set('toJSON', {
+  virtuals: true,
+});
 module.exports = mongoose.model('Cart', cartSchema);

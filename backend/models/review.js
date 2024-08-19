@@ -26,4 +26,12 @@ const reviewSchema = new mongoose.Schema({
   timestamps: true
 });
 
+
+reviewSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
+
+reviewSchema.set('toJSON', {
+  virtuals: true,
+});
 module.exports = mongoose.model('Review', reviewSchema);
