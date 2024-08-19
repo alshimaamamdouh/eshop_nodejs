@@ -1,100 +1,62 @@
-// routes/cart.js
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/cart');
-const CartItem = require('../models/cartItem');
 const Product = require('../models/product');
 
-// Get cart for a user
-router.get('/:userId', async (req, res) => {
+// Add an item to the cart
+router.post('/add', async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.params.userId }).populate({
-      path: 'items',
-      populate: {
-        path: 'product'
-      }
-    });
-    if (!cart) return res.status(404).send('Cart not found');
-    res.send(cart);
-  } catch (error) {
-    res.status(500).send('Server error');
-  }
-});
+    const { userId, productId, quantity } = req.body;
 
-// Add item to cart
-router.post('/:userId/add', async (req, res) => {
-  try {
-    const { productId, quantity } = req.body;
-
-    if (quantity < 1) return res.status(400).send('Quantity must be at least 1');
-
+    // Find the product to get its details
     const product = await Product.findById(productId);
     if (!product) return res.status(404).send('Product not found');
 
-    let cart = await Cart.findOne({ user: req.params.userId });
-
+    // Find or create the cart for the user
+    let cart = await Cart.findOne({ userId });
     if (!cart) {
-      cart = new Cart({ user: req.params.userId, items: [] });
+      cart = new Cart({ userId, items: [] });
     }
 
-    let cartItem = await CartItem.findOne({ product: productId });
-    if (!cartItem) {
-      cartItem = new CartItem({ product: productId, quantity });
-      await cartItem.save();
+    // Check if the item already exists in the cart
+    const existingItem = cart.items.find(item => item.productId.equals(productId));
+    if (existingItem) {
+      existingItem.quantity += quantity;
     } else {
-      cartItem.quantity += quantity;
-      await cartItem.save();
+      cart.items.push({ productId, quantity });
     }
 
-    if (!cart.items.includes(cartItem._id)) {
-      cart.items.push(cartItem._id);
-      await cart.save();
-    }
-
-    res.send(cart);
-  } catch (error) {
-    res.status(500).send('Server error');
-  }
-});
-
-// Remove item from cart
-router.post('/:userId/remove', async (req, res) => {
-  try {
-    const { productId } = req.body;
-
-    let cart = await Cart.findOne({ user: req.params.userId });
-
-    if (!cart) return res.status(404).send('Cart not found');
-
-    const cartItem = await CartItem.findOneAndDelete({ product: productId });
-    if (!cartItem) return res.status(404).send('Cart item not found');
-
-    cart.items = cart.items.filter(itemId => !itemId.equals(cartItem._id));
     await cart.save();
-    
     res.send(cart);
   } catch (error) {
     res.status(500).send('Server error');
   }
 });
 
-// Update item quantity in cart
-router.post('/:userId/update', async (req, res) => {
+// Remove an item from the cart
+router.delete('/remove', async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { userId, productId } = req.body;
 
-    if (quantity < 1) return res.status(400).send('Quantity must be at least 1');
-
-    let cart = await Cart.findOne({ user: req.params.userId });
-
+    // Find the cart for the user
+    const cart = await Cart.findOne({ userId });
     if (!cart) return res.status(404).send('Cart not found');
 
-    let cartItem = await CartItem.findOne({ product: productId });
+    // Remove the item from the cart
+    cart.items = cart.items.filter(item => !item.productId.equals(productId));
 
-    if (!cartItem) return res.status(404).send('Cart item not found');
+    await cart.save();
+    res.send(cart);
+  } catch (error) {
+    res.status(500).send('Server error');
+  }
+});
 
-    cartItem.quantity = quantity;
-    await cartItem.save();
+// Get all items in the cart
+router.get('/:userId', async (req, res) => {
+  try {
+    const cart = await Cart.findOne({ userId: req.params.userId }).populate('items.productId');
+    if (!cart) return res.status(404).send('Cart not found');
 
     res.send(cart);
   } catch (error) {

@@ -10,6 +10,7 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const cartRoutes = require('./routes/carts');
 const reviewRoutes = require('./routes/reviews');
+const cors = require('cors');
 
 
 require('dotenv').config();
@@ -17,6 +18,7 @@ require('dotenv').config();
 //MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny')); // Log requests
+app.use(cors());
 
 //   DATABASE CONNECTION
 // mongoose.connect(process.env.MONGODB_URL, {
