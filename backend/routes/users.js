@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create a new user
-    const user = new User({ name, email, password: hashedPassword, isAdmin });
+    const user = new User({ name, email, passwordHash: hashedPassword, isAdmin });
     await user.save();
 
     res.status(201).send('User created successfully');
@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).send('Invalid email or password');
 
     // Compare the entered password with the stored hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(401).send('Invalid email or password');
 
     // Generate JWT token

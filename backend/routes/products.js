@@ -40,8 +40,9 @@ router.get('/category/:categoryId', async (req, res) => {
 // Create a new product
 router.post('/', async (req, res) => {
   try {
-    const { name, description, price, category } = req.body;
-    const product = new Product({ name, description, price, category });
+    
+    const product = new Product(req.body);
+    //const product = new Product({ title, description, richDescription, rating, brand, price, category });
     await product.save();
     res.status(201).send(product);
   } catch (error) {
@@ -52,10 +53,10 @@ router.post('/', async (req, res) => {
 // Update a product
 router.put('/:productId', async (req, res) => {
   try {
-    const { name, description, price, category } = req.body;
+    const { title, description, richDescription, rating, brand, price, category } = req.body;
     const product = await Product.findByIdAndUpdate(
       req.params.productId,
-      { name, description, price, category },
+      { title, description, richDescription, rating, brand, price, category },
       { new: true }
     );
     if (!product) return res.status(404).send('Product not found');

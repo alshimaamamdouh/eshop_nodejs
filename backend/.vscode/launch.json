@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "nodejs",
+            "request": "launch",
+            "url": "nodejs"
+        }
+    ]
+}

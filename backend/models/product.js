@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
   brand: { type: String, default: '' },
   price: { type: Number, required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  countInStock: { type: Number, required: true, min: 0, max: 255 },
+  countInStock: { type: Number, min: 0, max: 255 },
   rating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
   isFeatured: { type: Boolean, default: false },
