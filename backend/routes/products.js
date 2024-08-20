@@ -53,18 +53,23 @@ router.post('/', async (req, res) => {
 // Update a product
 router.put('/:productId', async (req, res) => {
   try {
-    const { title, description, richDescription, rating, brand, price, category } = req.body;
+    const { title, description, richDescription, rating, image, brand, price, category } = req.body;
+
+    // Find and update the product
     const product = await Product.findByIdAndUpdate(
       req.params.productId,
-      { title, description, richDescription, rating, brand, price, category },
-      { new: true }
+      { $set: { title, description, richDescription, rating, image, brand, price, category } },
+      { new: true, runValidators: true }
     );
-    if (!product) return res.status(404).send('Product not found');
-    res.send(product);
+
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    res.status(200).json(product);
   } catch (error) {
-    res.status(500).send('Server error');
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Delete a product
 router.delete('/:productId', async (req, res) => {

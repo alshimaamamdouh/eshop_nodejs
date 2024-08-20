@@ -32,7 +32,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    
     // Check if the user exists
     const user = await User.findOne({ email });
     if (!user) return res.status(401).send('Invalid email or password');
