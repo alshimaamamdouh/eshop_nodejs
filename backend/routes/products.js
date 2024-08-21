@@ -37,6 +37,33 @@ router.get('/category/:categoryId', async (req, res) => {
   }
 });
 
+// Search products by title or description using POST request
+router.post('/search', async (req, res) => {
+  try {
+    const { query } = req.body; // Extract the search query from the request body
+    if (!query) return res.status(400).json({ message: 'Search query is required' });
+
+    const products = await Product.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ]
+    });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found' });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
+
+
+
 // Create a new product
 router.post('/', async (req, res) => {
   try {
