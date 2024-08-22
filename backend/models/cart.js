@@ -18,8 +18,17 @@ const cartSchema = new mongoose.Schema({
         required: true,
         min: 1,
       },
+      price: {
+        type: Number,
+        required: true,
+      },
     },
   ],
+  totalPrice: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
 }, { timestamps: true });
 
 cartSchema.virtual('id').get(function () {
@@ -28,6 +37,14 @@ cartSchema.virtual('id').get(function () {
 
 cartSchema.set('toJSON', {
   virtuals: true,
+});
+
+// Pre-save middleware to calculate total price
+cartSchema.pre('save', function (next) {
+  this.totalPrice = this.items.reduce((acc, item) => {
+    return acc + item.price * item.quantity;
+  }, 0);
+  next();
 });
 
 module.exports = mongoose.model('Cart', cartSchema);

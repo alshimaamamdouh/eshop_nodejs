@@ -8,11 +8,11 @@ router.post('/add', async (req, res) => {
   try {
     const { userId, productId, quantity } = req.body;
 
-    // Find the product to get its details
+    // find the product to get its price
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).send('Product not found');
+    if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    // Find or create the cart for the user
+    // find or create the cart by user
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = new Cart({ userId, items: [] });
@@ -23,44 +23,53 @@ router.post('/add', async (req, res) => {
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
-      cart.items.push({ productId, quantity });
+      cart.items.push({ 
+        productId, 
+        quantity, 
+        price: product.price // Store the current price of the product
+      });
     }
 
+    // Save the cart and calculate the total price
     await cart.save();
-    res.send(cart);
+    res.status(200).json(cart);
   } catch (error) {
-    res.status(500).send('Server error');
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Remove an item from the cart
+// delete item from the cart
 router.delete('/remove', async (req, res) => {
   try {
     const { userId, productId } = req.body;
 
-    // Find the cart for the user
+    // find the cart for the user
     const cart = await Cart.findOne({ userId });
-    if (!cart) return res.status(404).send('Cart not found');
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
-    // Remove the item from the cart
+    // remove the item from the cart
     cart.items = cart.items.filter(item => !item.productId.equals(productId));
 
+    // save the cart and calculate the total price
     await cart.save();
-    res.send(cart);
+    res.status(200).json(cart);
   } catch (error) {
-    res.status(500).send('Server error');
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get all items in the cart
+// get all items in the cart
 router.get('/:userId', async (req, res) => {
   try {
     const cart = await Cart.findOne({ userId: req.params.userId }).populate('items.productId');
-    if (!cart) return res.status(404).send('Cart not found');
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
-    res.send(cart);
+    res.status(200).json(cart);
   } catch (error) {
-    res.status(500).send('Server error');
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
