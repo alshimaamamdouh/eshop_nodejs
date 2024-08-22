@@ -91,6 +91,20 @@ router.get('/rating/:minRating', async (req, res) => {
 });
 
 
+// POST to get products that have discount
+router.post('/discounted', async (req, res) => {
+  try {
+    const discountedProducts = await Product.find({ discount: { $gt: 0 } });
+    if (discountedProducts.length === 0) {
+      return res.status(404).json({ message: 'No discounted products found' });
+    }
+    res.json(discountedProducts);
+  } catch (error) {
+    console.error('Error fetching discounted products:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 // Create a new product
 router.post('/', async (req, res) => {

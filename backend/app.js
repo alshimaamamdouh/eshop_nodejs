@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 app.use(morgan('tiny')); // Log requests
 app.use(cors());
 
+
 //   DATABASE CONNECTION
 // mongoose.connect(process.env.MONGODB_URL, {
 //   useNewUrlParser: true,
