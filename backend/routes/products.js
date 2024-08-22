@@ -92,7 +92,6 @@ router.get('/rating/:minRating', async (req, res) => {
 
 
 
-
 // Create a new product
 router.post('/', async (req, res) => {
   try {
