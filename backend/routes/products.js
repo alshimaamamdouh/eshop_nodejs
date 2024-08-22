@@ -71,7 +71,14 @@ router.get('/rating/:minRating', async (req, res) => {
       return res.status(400).json({ message: 'Invalid rating value' });
     }
 
+    // Log the minRating value
+    console.log(`Filtering products with rating >= ${minRating}`);
+
+    // Find products with rating greater than or equal to minRating
     const products = await Product.find({ rating: { $gte: minRating } });
+
+    // Log the products found
+    console.log(`Found ${products.length} products with rating >= ${minRating}`);
 
     if (products.length === 0) {
       return res.status(404).json({ message: 'No products found with the specified rating' });
