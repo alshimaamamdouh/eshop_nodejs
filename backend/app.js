@@ -10,6 +10,7 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const cartRoutes = require('./routes/carts');
 const reviewRoutes = require('./routes/reviews');
+const wishlistRoutes = require('./routes/wishlists');
 const cors = require('cors');
 
 
@@ -43,6 +44,8 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/wishlist', wishlistRoutes);
+
 
 app.listen(5000, () => {
   console.log('Server is running on port 5000');
