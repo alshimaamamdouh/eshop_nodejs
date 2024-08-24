@@ -20,7 +20,11 @@ const cartSchema = new mongoose.Schema({
       },
       price: {
         type: Number,
-        required: true,
+        required: true, // Original price
+      },
+      discountedPrice: {
+        type: Number,
+        required: true, // Price after discount
       },
     },
   ],
@@ -39,10 +43,10 @@ cartSchema.set('toJSON', {
   virtuals: true,
 });
 
-// Pre-save middleware to calculate total price
+// Pre-save middleware to calculate total price using discounted prices
 cartSchema.pre('save', function (next) {
   this.totalPrice = this.items.reduce((acc, item) => {
-    return acc + item.price * item.quantity;
+    return acc + item.discountedPrice * item.quantity;
   }, 0);
   next();
 });
