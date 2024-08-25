@@ -13,6 +13,39 @@ router.get('/', async (req, res) => {
   }
 });
 
+
+// Get paginated products with POST
+router.post('/pagination', async (req, res) => {
+  try {
+    // Get page and limit from the request body, with defaults
+    const { page = 1, limit = 10 } = req.body;
+
+    // Calculate the number of products to end
+    const end = (page - 1) * limit;
+
+    // Fetch the products with pagination
+    const products = await Product.find().skip(end).limit(limit);
+
+    // Get the total number of products
+    const totalProducts = await Product.countDocuments();
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    res.status(200).json({
+      products,
+      page,
+      totalPages,
+      totalProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
 // Get a product by ID
 router.get('/:productId', async (req, res) => {
   try {
