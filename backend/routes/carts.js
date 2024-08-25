@@ -47,10 +47,10 @@ router.post('/add', async (req, res) => {
 
 
 
-// reduce quantity of certain item from the cart
+// Reduce quantity of a certain item from the cart or remove it if the quantity is 1
 router.delete('/remove', async (req, res) => {
   try {
-    const { userId, productId, quantity } = req.body;
+    const { userId, productId } = req.body;
 
     // Find the cart for the user
     const cart = await Cart.findOne({ userId });
@@ -60,30 +60,21 @@ router.delete('/remove', async (req, res) => {
     const item = cart.items.find(item => item.productId.equals(productId));
     if (!item) return res.status(404).json({ message: 'Item not found in cart' });
 
-    // Find the product to get its price and discount information
-    const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-
-    // Calculate the effective price considering any discount
-    const effectivePrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
-
-    // Reduce the quantity or remove the item if the quantity reaches 0
-    if (quantity >= item.quantity) {
-      // Remove the item from the cart if quantity is greater than or equal to existing quantity
+    // Remove item if quantity is 1; otherwise, reduce quantity by 1
+    if (item.quantity === 1) {
+      // Remove the item from the cart
       cart.items = cart.items.filter(item => !item.productId.equals(productId));
     } else {
-      // Reduce the quantity and adjust the price
-      item.quantity -= quantity;
+      // Reduce the quantity by 1
+      item.quantity -= 1;
     }
 
     // Recalculate the total price of the cart
-    let newTotalPrice = 0;
-    for (let item of cart.items) {
-      const itemProduct = await Product.findById(item.productId);
-      const itemEffectivePrice = itemProduct.discount > 0 ? itemProduct.price * (1 - itemProduct.discount / 100) : itemProduct.price;
-      newTotalPrice += itemEffectivePrice * item.quantity;
-    }
-    cart.totalPrice = newTotalPrice;
+    cart.totalPrice = cart.items.reduce(async (total, item) => {
+      const product = await Product.findById(item.productId);
+      const effectivePrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
+      return total + effectivePrice * item.quantity;
+    }, 0);
 
     // Save the updated cart
     await cart.save();
@@ -93,6 +84,7 @@ router.delete('/remove', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 // Delete item from the cart
