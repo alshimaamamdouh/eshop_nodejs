@@ -47,7 +47,6 @@ router.post('/add', async (req, res) => {
 
 
 
-// Reduce quantity of a certain item from the cart or remove it if the quantity is 1
 router.delete('/remove', async (req, res) => {
   try {
     const { userId, productId } = req.body;
@@ -70,11 +69,15 @@ router.delete('/remove', async (req, res) => {
     }
 
     // Recalculate the total price of the cart
-    cart.totalPrice = cart.items.reduce(async (total, item) => {
+    const updatedCart = await Cart.findOne({ userId }).populate('items.productId');
+    const totalPrice = await updatedCart.items.reduce(async (totalPromise, item) => {
+      const total = await totalPromise;
       const product = await Product.findById(item.productId);
       const effectivePrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
       return total + effectivePrice * item.quantity;
-    }, 0);
+    }, Promise.resolve(0));
+
+    cart.totalPrice = totalPrice;
 
     // Save the updated cart
     await cart.save();
@@ -84,6 +87,7 @@ router.delete('/remove', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 
