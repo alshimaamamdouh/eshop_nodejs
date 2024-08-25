@@ -7,6 +7,8 @@ const orderSchema = new mongoose.Schema({
   city: { type: String, required: true },
   zip: { type: String, required: true },
   country: { type: String, required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   phone: { type: String, required: true },
   status: { type: String, default: 'Pending', required: true },
   totalPrice: { type: Number },
