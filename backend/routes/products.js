@@ -70,6 +70,40 @@ router.get('/category/:categoryId', async (req, res) => {
   }
 });
 
+// Get products by category with pagination
+router.post('/category/:categoryId/pagination', async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { page = 1, limit = 10 } = req.body;
+
+    // Validate category
+    const category = await Category.findById(categoryId);
+    if (!category) return res.status(404).send('Category not found');
+
+    // Calculate the number of products to skip
+    const end = (page - 1) * limit;
+
+    // Fetch the products with pagination
+    const products = await Product.find({ category: categoryId }).skip(end).limit(limit);
+
+    // Get the total number of products
+    const totalProducts = await Product.countDocuments({ category: categoryId });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    res.status(200).json({
+      products,
+      page,
+      totalPages,
+      totalProducts,
+    });
+  } catch (error) {
+    res.status(500).send('Server error');
+  }
+});
+
+
 // Search products by title or description using POST request
 router.post('/search', async (req, res) => {
   try {
@@ -93,6 +127,49 @@ router.post('/search', async (req, res) => {
   }
 });
 
+
+// Search products by title or description with pagination
+router.post('/search/pagination', async (req, res) => {
+  try {
+    const { query, page = 1, limit = 10 } = req.body;
+    if (!query) return res.status(400).json({ message: 'Search query is required' });
+
+    // Calculate the number of products to skip
+    const end = (page - 1) * limit;
+
+    // Search products with pagination
+    const products = await Product.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ]
+    }).skip(end).limit(limit);
+
+    // Get the total number of products matching the query
+    const totalProducts = await Product.countDocuments({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ]
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found' });
+    }
+
+    res.status(200).json({
+      products,
+      page,
+      totalPages,
+      totalProducts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 // Get products by rating
@@ -124,6 +201,43 @@ router.get('/rating/:minRating', async (req, res) => {
 });
 
 
+// Search products by rating with pagination
+router.post('/rating/pagination', async (req, res) => {
+  try {
+    const { minRating, page = 1, limit = 10 } = req.body;
+    
+    if (isNaN(minRating)) {
+      return res.status(400).json({ message: 'Invalid rating value' });
+    }
+
+    // Calculate the number of products to skip
+    const end = (page - 1) * limit;
+
+    // Search products with rating greater than or equal to minRating and apply pagination
+    const products = await Product.find({ rating: { $gte: parseFloat(minRating) } }).skip(end).limit(limit);
+
+    // Get the total number of products matching the rating criteria
+    const totalProducts = await Product.countDocuments({ rating: { $gte: parseFloat(minRating) } });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found with the specified rating' });
+    }
+
+    res.status(200).json({
+      products,
+      page,
+      totalPages,
+      totalProducts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
 // POST to get products that have discount
 router.post('/discounted', async (req, res) => {
   try {
@@ -137,6 +251,41 @@ router.post('/discounted', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+// Get discounted products with pagination
+router.post('/discounted/pagination', async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.body;
+    
+    
+    const end = (page - 1) * limit;
+
+    // Find discounted products and apply pagination
+    const discountedProducts = await Product.find({ discount: { $gt: 0 } }).skip(end).limit(limit);
+
+    // Get the total number of discounted products
+    const totalDiscountedProducts = await Product.countDocuments({ discount: { $gt: 0 } });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalDiscountedProducts / limit);
+
+    if (discountedProducts.length === 0) {
+      return res.status(404).json({ message: 'No discounted products found' });
+    }
+
+    res.status(200).json({
+      products: discountedProducts,
+      page,
+      totalPages,
+      totalDiscountedProducts,
+    });
+  } catch (error) {
+    console.error('Error fetching discounted products:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 
 // Create a new product
