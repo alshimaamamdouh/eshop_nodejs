@@ -1,7 +1,44 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
-const OrderItem = require('../models/orderItem');
+
+
+
+// Update order status
+router.put('/updateStatus', async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+
+    // Validate input
+    if (!orderId || !status) {
+      return res.status(400).json({ message: 'Order ID and status are required' });
+    }
+
+    // Validate the status
+    const validStatuses = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    // Find the order and update its status
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 // Create a new order
 router.post('/', async (req, res) => {
@@ -14,12 +51,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.post('/getByuser', async (req, res) => {
+// Get orders by user ID
+router.post('/getByUser', async (req, res) => {
   try {
     const { userId } = req.body;
     console.log('userId received:', userId);
 
-    const orders = await Order.find({ userId }).populate('orderItems');
+    // Find orders by userId
+    const orders = await Order.find({ userId });
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: 'No orders found for this user' });
     }
@@ -31,17 +70,12 @@ router.post('/getByuser', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
 // Get all orders
 router.get('/', async (req, res) => {
   try {
-    const orders = await Order.find().populate('orderItems');
-    res.send(orders);
+    // Fetch all orders
+    const orders = await Order.find();
+    res.status(200).json(orders);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -52,7 +86,7 @@ router.delete('/:orderId', async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.orderId);
     if (!order) return res.status(404).send('Order not found');
-    res.send('Order deleted');
+    res.status(200).send('Order deleted');
   } catch (error) {
     res.status(500).send('Server error');
   }
