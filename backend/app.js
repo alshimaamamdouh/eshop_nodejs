@@ -45,6 +45,7 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/contact', wishlistRoutes);
 
 
 app.listen(5000, () => {

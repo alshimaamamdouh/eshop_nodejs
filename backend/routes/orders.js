@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
+const sendEmail = require('../email/emailservice');
 
 
 
@@ -45,6 +46,15 @@ router.post('/', async (req, res) => {
   try {
     const order = new Order(req.body);
     await order.save();
+
+    // Send confirmation email
+    const { email } = req.body; // Email of the user placing the order
+    const subject = 'Order Confirmation';
+    const text = `Thank you for your order. Your order number is ${order.orderNumber}.`;
+    const html = `<p>Thank you for your order. Your order number is <strong>${order.orderNumber}</strong>.</p>`;
+    
+    await sendEmail(email, subject, text, html);
+    
     res.status(201).send(order);
   } catch (error) {
     res.status(400).send(error);
